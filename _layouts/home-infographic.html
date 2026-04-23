@@ -4,26 +4,48 @@ layout: page
 ---
 <div class="row">
 
-  <div class="col-md-8">
+  <div class="col-lg-8">
 
-    {% include index/description.html %}
-    {% include index/carousel.html title="Sample Items" %}
+    <section class="editorial-section">
+      <p class="editorial-kicker">Archive Overview</p>
+      {% include index/description.html %}
+    </section>
+
+    <section class="editorial-section">
+      <p class="editorial-kicker">Featured Materials</p>
+      {% include index/carousel.html title="Sample Items" %}
+    </section>
     
   </div>
-  <div class="col-md-4">  
+  <div class="col-lg-4">  
 
-    {% include index/time.html %}
+    <section class="editorial-section">
+      <p class="editorial-kicker">Timeline Snapshot</p>
+      {% include index/time.html %}
+    </section>
 
-    {% include index/featured-terms.html field="subject" title="Top Subjects" btn-color="primary" %}
+    <section class="editorial-section">
+      <p class="editorial-kicker">Subject Paths</p>
+      {% include index/featured-terms.html field="subject" title="Top Subjects" btn-color="primary" %}
+    </section>
 
-    {% include index/featured-terms.html field="location" title="Locations" btn-color="outline-secondary" %}
+    <section class="editorial-section">
+      <p class="editorial-kicker">Geographic Scope</p>
+      {% include index/featured-terms.html field="location" title="Locations" btn-color="outline-secondary" %}
+    </section>
     
-    {% include index/content.html %}
+    <section class="editorial-section">
+      <p class="editorial-kicker">Collection Profile</p>
+      {% include index/content.html %}
+    </section>
 
   </div>
   <div class="col-md-12">
 
-    {% include index/data-download.html %}
+    <section class="editorial-section">
+      <p class="editorial-kicker">Research Data Access</p>
+      {% include index/data-download.html %}
+    </section>
 
   </div>
 

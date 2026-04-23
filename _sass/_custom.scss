@@ -1,4 +1,240 @@
-/* 
-    Put your custom SCSS here! 
-    This allows you to override any CollectionBuilder or Bootstrap CSS without modifying the base theme files directly.
+/*
+    Project-level editorial design system.
+    This file intentionally sits on top of CollectionBuilder defaults.
 */
+
+:root {
+    --site-bg: #f7f6f2;
+    --site-surface: #ffffff;
+    --site-surface-muted: #efede7;
+    --site-ink: #151515;
+    --site-ink-soft: #4b4b4b;
+    --site-border: #d8d5cd;
+    --site-accent: #7b2f35;
+    --site-accent-strong: #5f1d24;
+
+    --content-max: 1180px;
+    --reading-max: 760px;
+
+    --space-1: 0.5rem;
+    --space-2: 0.875rem;
+    --space-3: 1.25rem;
+    --space-4: 1.75rem;
+    --space-5: 2.5rem;
+    --space-6: 3.5rem;
+
+    --radius-sm: 0.3rem;
+    --radius-md: 0.55rem;
+    --radius-lg: 0.85rem;
+
+    --shadow-soft: 0 6px 20px rgba(0, 0, 0, 0.06);
+}
+
+body {
+    background: var(--site-bg);
+    color: var(--site-ink);
+    line-height: 1.7;
+    letter-spacing: 0.008em;
+}
+
+main#maincontent {
+    padding-bottom: var(--space-6);
+}
+
+a {
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.12em;
+}
+
+a:hover,
+a:focus {
+    text-decoration: underline;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: Georgia, "Times New Roman", Times, serif;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    color: #111;
+}
+
+h1,
+.display-1,
+.display-2,
+.display-3 {
+    font-weight: 700;
+}
+
+p,
+li,
+dd,
+dt,
+blockquote {
+    max-width: var(--reading-max);
+}
+
+.container {
+    max-width: var(--content-max);
+}
+
+.btn {
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+}
+
+.card,
+.table,
+.list-group,
+.dropdown-menu,
+.modal-content {
+    border-color: var(--site-border);
+}
+
+.card,
+.list-group-item,
+.table {
+    background: var(--site-surface);
+}
+
+.card {
+    box-shadow: var(--shadow-soft);
+}
+
+.lead {
+    font-size: clamp(1.15rem, 1rem + 0.55vw, 1.45rem);
+    line-height: 1.65;
+    color: #1c1c1c;
+}
+
+/* Banner text container and responsive behavior */
+#home-banner {
+    border-bottom: 1px solid var(--site-border);
+}
+
+#home-title-box .editorial-banner-panel {
+    max-width: 860px;
+    margin: 0 auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+    backdrop-filter: blur(2px);
+}
+
+#home-title-box .editorial-banner-title {
+    font-size: clamp(2rem, 1.4rem + 2.5vw, 3.5rem);
+    line-height: 1.08;
+    margin-bottom: var(--space-2);
+}
+
+#home-title-box .editorial-banner-subtitle {
+    margin-bottom: 0;
+    font-size: clamp(1rem, 0.95rem + 0.5vw, 1.3rem);
+    line-height: 1.55;
+}
+
+/* Top nav treatment */
+.navbar {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.navbar .nav-link {
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    font-size: 0.84rem;
+    padding: 0.78rem 0.95rem;
+}
+
+.navbar .nav-link.active,
+.navbar .show > .nav-link {
+    text-decoration: underline;
+    text-decoration-thickness: 0.16em;
+    text-underline-offset: 0.3em;
+}
+
+.navbar .dropdown-menu {
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-soft);
+}
+
+.navbar .dropdown-item {
+    font-size: 0.95rem;
+    padding: 0.55rem 1rem;
+}
+
+/* Shared editorial section wrappers */
+.editorial-section {
+    background: var(--site-surface);
+    border: 1px solid var(--site-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    margin-bottom: var(--space-4);
+    box-shadow: var(--shadow-soft);
+}
+
+.editorial-kicker {
+    display: inline-block;
+    margin-bottom: var(--space-2);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--site-ink-soft);
+}
+
+.editorial-meta {
+    color: var(--site-ink-soft);
+    font-size: 0.92rem;
+}
+
+/* About/page text rhythm */
+#about-contents-wrapper p,
+.page-narrow p,
+.about-narrow-contents p {
+    margin-bottom: 1.15rem;
+}
+
+#about-contents-wrapper h2,
+.page-narrow h2,
+.about-narrow-contents h2 {
+    margin-top: 2.2rem;
+    margin-bottom: 0.9rem;
+}
+
+/* Footer polish */
+footer {
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+footer .nav-link {
+    font-size: 0.9rem;
+    letter-spacing: 0.02em;
+}
+
+@media (max-width: 991.98px) {
+    .editorial-section {
+        padding: var(--space-4);
+    }
+
+    #home-title-box .editorial-banner-panel {
+        margin-inline: var(--space-2);
+    }
+}
+
+@media (max-width: 575.98px) {
+    :root {
+        --space-5: 2rem;
+        --space-6: 2.6rem;
+    }
+
+    .navbar .nav-link {
+        font-size: 0.88rem;
+        letter-spacing: 0.015em;
+        text-transform: none;
+    }
+}

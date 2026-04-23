@@ -3,37 +3,45 @@ title: About
 layout: about
 permalink: /about.html
 # include CollectionBuilder info at bottom
-credits: true
+credits: false
 # featured-image value can be one objectid for a photo object in this collection, a relative path to an image in this project, or a full url to any image. If left blank, no featured image will appear at top of About page.
 about-featured-image: demo_031
 # set background-position for featured image, "center", "top", "bottom"
 position: bottom
 # major heading to display over featured image
-heading: About the Collection
+heading: About the Archive
 # paragraph text below heading in featured image
-sub-heading: 
+sub-heading: Documentation, context, and sources related to Palestine solidarity at the University of Basel
 # additional padding added to the feature to increase size. Give value in em or px, e.g. "5em".
 padding: 6em
 # Edit the markdown on in this file to describe your collection
 # Look in _includes/feature for options to easily add features to the page
 ---
 
-## About CollectionBuilder CSV
+## Scope and Purpose
 
-This demo collection features items from the University of Idaho Library's [Digital Collections](https://www.lib.uidaho.edu/digital/), and is build using [CollectionBuilder-CSV](https://github.com/CollectionBuilder/collectionbuilder-csv).
+This archive gathers materials related to Palestine solidarity activities connected to the University of Basel. It is designed as a research and teaching resource that supports contextual reading rather than rapid consumption.
 
-CollectionBuilder-CSV is a "Stand Alone" template for creating digital collection and exhibit websites using Jekyll, given:
+The project emphasizes:
 
-- a CSV of collection metadata
-- a folder of images, PDFs, audio, or video files
+- traceable metadata
+- transparent editorial framing
+- long-term access to primary and secondary documentation
 
-Driven by your collection metadata, the template generates engaging visualizations to browse and explore your objects.
-The resulting static site can be hosted on any basic web server.
+## What You Will Find
 
-[CollectionBuilder](https://github.com/CollectionBuilder/) is an set of open source tools for creating digital collection and exhibit websites that are driven by metadata and powered by modern static web technology.
-See [CB Docs](https://collectionbuilder.github.io/cb-docs/) for detailed information.
+The collection may include posters, statements, flyers, press material, event traces, and related institutional documents. Each record is described with standardized fields to support comparison across time, actors, and locations.
+
+## Method and Framing
+
+Records are presented with minimal intervention in order to preserve historical specificity. Descriptions aim to clarify provenance and context while avoiding unnecessary interpretive claims. When uncertainty exists, it is indicated explicitly in the metadata or notes.
+
+## Use and Citation
+
+This site is intended for study, discussion, and public history work. Please cite items directly via the provided record pages and preserve referenced source information when reusing material.
+
+## Technical Note
+
+The archive is built with [CollectionBuilder-CSV](https://github.com/CollectionBuilder/collectionbuilder-csv), an open-source framework for metadata-driven digital collections.
 
 {% include feature/image.html objectid="demo_001" width="75" %} 
-
-<!-- IMPORTANT!!! DELETE this comment and the include below when you are finished editing this page for your collection. The include below introduces about page features. They will show up on your collection's about page until you delete it.  -->
-{% include cb/about_the_about.md %} 
