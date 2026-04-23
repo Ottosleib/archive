@@ -30,10 +30,17 @@
         {% capture jumboSrc %}{{ site.data.featured_item.src | relative_url }}{% endcapture %}
         {% capture jumboLink %}{{ site.data.featured_item.link | relative_url }}{% endcapture %}
     {%- endif -%}
+{% assign parent_items = site.data[site.metadata] | where_exp: "item","item.objectid and item.parentid == nil" %}
+{% assign all_items = site.data[site.metadata] | where_exp: "item","item.objectid" %}
+{% assign dates = all_items | map: "date" | compact | uniq %}
+{% capture years %}{% for date in dates %}{% if date contains "-" %}{{ date | strip | split: "-" | first }}{% elsif date contains "/" %}{{ date | strip | split: "/" | last }}{% else %}{{ date | strip }}{% endif %}{% unless forloop.last %};{% endunless %}{% endfor %}{% endcapture %}
+{% assign date_range = years | remove: " " | split: ";" | uniq | sort %}
+{% assign format_count = parent_items | map: "display_template" | compact | uniq | size %}
+{% assign location_count = parent_items | map: "location" | compact | join: ";" | split: ";" | uniq | size %}
 
 <style>
 #home-banner {
-    padding: 4rem 0;
+    padding: clamp(3rem, 4vw, 5rem) 0 clamp(2.25rem, 3vw, 3.75rem);
     background-image: url({{ jumboSrc }});
     background-size: cover;
     background-repeat: no-repeat;
@@ -42,27 +49,37 @@
 {% if page.banner-padding or site.data.theme.home-title-y-padding %}
 #home-title-box {
     padding-top: {{ page.banner-padding | default: site.data.theme.home-title-y-padding | default: '8em' }};
-    padding-bottom: 1em;
+    padding-bottom: 0;
 }
 {%- endif -%}
 @media screen and (max-width: 576px) {
     #home-title-box {
-        padding-top: min({{ page.banner-padding | default: site.data.theme.home-title-y-padding | default: '8em' }}, 45vh);
+        padding-top: min({{ page.banner-padding | default: site.data.theme.home-title-y-padding | default: '8em' }}, 32vh);
     }
 }
 </style>
-<div id="home-banner" class="mb-0 position-relative">
+<div id="home-banner" class="mb-0 position-relative archive-hero">
     <div class="home-banner-inner container">
         <div id="home-title-box">
-            <div class="editorial-banner-panel p-3 p-md-4 text-start text-white">
-                <p class="editorial-banner-kicker mb-2">Digital Archive</p>
+            <div class="editorial-banner-panel text-start text-white">
+                <p class="editorial-banner-kicker mb-2">Digital Archive and Research Portal</p>
                 <h1 class="display-2 editorial-banner-title">{{ page.banner-heading | default: site.title }}</h1>
                 {% if page.banner-sub-heading != false and page.banner-sub-heading or site.tagline %}<p class="editorial-banner-subtitle">{{ page.banner-sub-heading | default: site.tagline }}</p>{% endif %}
+                <div class="hero-cta-row">
+                    <a class="btn btn-primary" href="{{ '/browse.html' | relative_url }}">Start Exploring</a>
+                    <a class="btn btn-hero-secondary" href="{{ '/timeline.html' | relative_url }}">Browse Timeline</a>
+                </div>
+                <ul class="hero-meta-chips" aria-label="Archive metadata highlights">
+                    <li><strong>Coverage:</strong> {% if date_range.size > 0 %}{{ date_range | first }}-{{ date_range | last }}{% else %}N/A{% endif %}</li>
+                    <li><strong>Records:</strong> {{ parent_items | size }}</li>
+                    <li><strong>Places:</strong> {{ location_count }}</li>
+                    <li><strong>Media:</strong> {{ format_count }}</li>
+                </ul>
             </div>
         </div>
     </div>
     {% if jumboLink != '' %}
-    <a class="home-banner-credit text-white position-absolute bottom-0 end-0 px-2 py-1" href="{{ jumboLink }}" title="Visit background image record">Featured Image</a>{% endif %}
+    <a class="home-banner-credit text-white position-absolute bottom-0 end-0 px-2 py-1" href="{{ jumboLink }}" title="Visit background image record">View hero image record</a>{% endif %}
 </div>
 {%- else -%}
 <div class="container py-4">

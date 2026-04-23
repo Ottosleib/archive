@@ -1,52 +1,43 @@
-<footer class="bg-black pt-4 mt-auto container-fluid">
-
-    <div class="row border-bottom border-secondary-subtle pb-4 mb-2">
-
-        <div class="col-md-7 px-4 mt-3">
-
-            <p class="editorial-kicker text-light-emphasis mb-2">Collection</p>
-            <h2 class="h4 mb-2"><a href="{{ '/' | relative_url }}" class="text-white">{{ site.title }}</a></h2>
-            <p class="text-light mb-3"><small>{{ site.description }}</small></p>
-            <nav>
+<footer class="archive-footer mt-auto">
+    <div class="container">
+        <div class="footer-grid">
+            <div>
+                <p class="editorial-kicker mb-2">Research Archive</p>
+                <h2 class="h4 mb-2"><a href="{{ '/' | relative_url }}">{{ site.title }}</a></h2>
+                <p class="mb-0">{{ site.description }}</p>
+            </div>
+            <nav aria-label="Footer navigation">
                 <ul id="footer-nav" class="nav">
                     {%- assign navItems = site.data.config-nav | where_exp: 'item', 'item.dropdown_parent == nil' -%}
                     {% for nav in navItems %}
                     <li class="nav-item">
                     {% if nav.stub %}
-                        <a class="nav-link text-light{% if page.url == nav.stub %} active{% endif %}" {% if page.url == nav.stub %}aria-current="page" {% endif %}href="{{ nav.stub | relative_url }}">{{ nav.display_name }}</a>
+                        <a class="nav-link{% if page.url == nav.stub %} active{% endif %}" {% if page.url == nav.stub %}aria-current="page" {% endif %}href="{{ nav.stub | relative_url }}">{{ nav.display_name }}</a>
                     {%- else -%}
                     {% assign childStub = site.data.config-nav | where_exp: 'item', 'item.dropdown_parent == nav.display_name' | first %}
-                        <a class="nav-link text-light{% if page.url == childStub.stub %} active{% endif %}" {% if page.url == childStub.stub %}aria-current="page" {% endif %}href="{{ childStub.stub | relative_url }}">{{ nav.display_name }}</a>
+                        <a class="nav-link{% if page.url == childStub.stub %} active{% endif %}" {% if page.url == childStub.stub %}aria-current="page" {% endif %}href="{{ childStub.stub | relative_url }}">{{ nav.display_name }}</a>
                     {% endif %}
                     </li>
                     {%- endfor -%}
                 </ul>
             </nav>
-
-        </div>
-
-        <div class="col-md-5 mt-3 text-center">
-
-           {% if site.organization-logo-nav %}<p class="text-md-end">
-                <a href="{{ site.organization-link }}">
-                    <img id="footer-logo" class="img-fluid" src="{{ site.organization-logo-nav | relative_url }}" alt="{{ site.organization-name | escape }} home">
-                </a>
-            </p>
-            {% endif %}
-            <p class="text-light text-md-end mb-0" id="footer-credits">
-                <small><em>Built with</em>
-                    <a href="https://collectionbuilder.github.io/" title="CollectionBuilder">
-                        <img src="{{ '/assets/img/collectionbuilder-logo.png' | relative_url }}" class="img-fluid" alt="CollectionBuilder" >
+            <div class="footer-meta">
+                {% if site.organization-logo-nav %}
+                <p class="mb-3">
+                    <a href="{{ site.organization-link }}">
+                        <img id="footer-logo" class="img-fluid" src="{{ site.organization-logo-nav | relative_url }}" alt="{{ site.organization-name | escape }} home">
                     </a>
-                </small>
-            </p>
-
+                </p>
+                {% endif %}
+                <p class="mb-2">
+                    <small><em>Built with</em>
+                        <a href="https://collectionbuilder.github.io/" title="CollectionBuilder">
+                            <img src="{{ '/assets/img/collectionbuilder-logo.png' | relative_url }}" class="img-fluid footer-cb-logo" alt="CollectionBuilder">
+                        </a>
+                    </small>
+                </p>
+                <p class="mb-0">Updated {{ site.time | date: '%B %Y' }}</p>
+            </div>
         </div>
-
     </div>
-
-    <div class="col-md-12 text-center pt-3 pb-2">
-        <p class="text-light-emphasis mb-0">Last updated {{ site.time | date: '%Y' }}</p>
-    </div>
-
 </footer>
