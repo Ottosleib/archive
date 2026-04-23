@@ -63,45 +63,26 @@ layout: default
       <p class="section-kicker">Explore</p>
       <h2 class="section-title">Choose an entry point for browsing, chronology, geography, and themes.</h2>
       <div class="entry-grid">
-        <article class="entry-card entry-card--primary">
+        <a class="entry-card entry-card--primary" href="{{ '/browse.html' | relative_url }}">
           <h3>Browse Archive</h3>
           <p>Filter records by title, format, creator, and metadata fields for close reading and comparison.</p>
-          <a href="{{ '/browse.html' | relative_url }}" class="entry-link">Browse Records</a>
-        </article>
-        <article class="entry-card entry-card--olive">
+          <span class="entry-link" aria-hidden="true">Browse Records</span>
+        </a>
+        <a class="entry-card entry-card--olive" href="{{ '/timeline.html' | relative_url }}">
           <h3>Timeline</h3>
           <p>Follow continuities and turning points across dated records and events.</p>
-          <a href="{{ '/timeline.html' | relative_url }}" class="entry-link">Study the Timeline</a>
-        </article>
-        <article class="entry-card entry-card--rust">
+          <span class="entry-link" aria-hidden="true">Study the Timeline</span>
+        </a>
+        <a class="entry-card entry-card--rust" href="{{ '/map.html' | relative_url }}">
           <h3>Map</h3>
           <p>Examine the spatial footprint of documents, actors, and institutional sites.</p>
-          <a href="{{ '/map.html' | relative_url }}" class="entry-link">Explore Places</a>
-        </article>
-        <article class="entry-card entry-card--stone">
+          <span class="entry-link" aria-hidden="true">Explore Places</span>
+        </a>
+        <a class="entry-card entry-card--stone" href="{{ '/subjects.html' | relative_url }}">
           <h3>Themes and Subjects</h3>
           <p>Trace recurring topics, vocabularies, and conceptual clusters.</p>
-          <a href="{{ '/subjects.html' | relative_url }}" class="entry-link">Browse Themes</a>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <section class="home-section home-cta-row band-olive">
-    <div class="container">
-      <div class="cta-grid">
-        <article class="cta-callout">
-          <p class="section-kicker">Chronology</p>
-          <h2 class="section-title">Trace events over time.</h2>
-          <p class="section-lead mb-3">Open the full timeline interface to move from broad periods to individual records.</p>
-          <a href="{{ '/timeline.html' | relative_url }}" class="btn btn-primary">Open Timeline</a>
-        </article>
-        <article class="cta-callout">
-          <p class="section-kicker">Geography</p>
-          <h2 class="section-title">Navigate the archive spatially.</h2>
-          <p class="section-lead mb-3">Use the map page to inspect place-based patterns and linked records.</p>
-          <a href="{{ '/map.html' | relative_url }}" class="btn btn-primary">Open Map</a>
-        </article>
+          <span class="entry-link" aria-hidden="true">Browse Themes</span>
+        </a>
       </div>
     </div>
   </section>
@@ -154,15 +135,29 @@ layout: default
         <div>
           <p class="section-kicker">Themes and Subjects</p>
           <h2 class="section-title">Discover the archive through recurring topics and conceptual clusters.</h2>
-          <p class="section-lead mb-0">Use these high-frequency themes as starting points for focused browsing.</p>
+          <p class="section-lead mb-0">Start with high-frequency themes, then expand into secondary clusters.</p>
         </div>
-        <div class="tag-cloud-curated">
-          {% for term in subject_terms limit: 18 %}
+        <div class="tag-group">
+          <p class="tag-group-label mb-2">Core Themes</p>
+          <div class="tag-cloud-curated">
+          {% for term in subject_terms limit: 6 %}
           {% assign clean_term = term[0] | strip %}
           {% if clean_term != '' %}
-          <a class="tag-chip {% if forloop.index <= 4 %}tag-chip--major{% endif %}" href="{{ clean_term | url_param_escape | prepend: ':subject' | prepend: '/browse.html#' | relative_url }}">{{ clean_term }}</a>
+          <a class="tag-chip tag-chip--major" href="{{ clean_term | url_param_escape | prepend: ':subject' | prepend: '/browse.html#' | relative_url }}">{{ clean_term }}</a>
           {% endif %}
           {% endfor %}
+          </div>
+        </div>
+        <div class="tag-group">
+          <p class="tag-group-label mb-2">Additional Topics</p>
+          <div class="tag-cloud-curated tag-cloud-curated--secondary">
+          {% for term in subject_terms offset: 6 limit: 6 %}
+          {% assign clean_term = term[0] | strip %}
+          {% if clean_term != '' %}
+          <a class="tag-chip tag-chip--secondary" href="{{ clean_term | url_param_escape | prepend: ':subject' | prepend: '/browse.html#' | relative_url }}">{{ clean_term }}</a>
+          {% endif %}
+          {% endfor %}
+          </div>
         </div>
         <a href="{{ '/subjects.html' | relative_url }}" class="btn btn-hero-secondary">Open Subject Index</a>
       </div>
