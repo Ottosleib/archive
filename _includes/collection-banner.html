@@ -68,11 +68,6 @@
                     <a class="btn btn-primary" href="{{ '/browse.html' | relative_url }}">Start Exploring</a>
                     <a class="btn btn-hero-secondary" href="{{ '/timeline.html' | relative_url }}">Browse Timeline</a>
                 </div>
-                <ul class="hero-meta-chips" aria-label="Archive metadata highlights">
-                    <li><strong>Coverage:</strong> {% if date_range.size > 0 %}{{ date_range | first }}-{{ date_range | last }}{% else %}N/A{% endif %}</li>
-                    <li><strong>Records:</strong> {{ parent_items | size }}</li>
-                    <li><strong>Places:</strong> {{ location_count }}</li>
-                </ul>
             </div>
         </div>
     </div>
