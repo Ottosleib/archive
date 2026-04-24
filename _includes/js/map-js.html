@@ -441,6 +441,255 @@
             }
         });
 
+        const rawPalestinianPlaceLabels = [
+            {
+                name_pal: "al-Quds",
+                name_common: "Jerusalem",
+                name_ar: "القدس",
+                suppress_names: ["Jerusalem", "West Jerusalem", "East Jerusalem", "Al-Quds", "Al Quds"],
+                coordinates: [35.2137, 31.7683]
+            },
+            {
+                name_pal: "Ghazza",
+                name_common: "Gaza",
+                name_ar: "غزة",
+                suppress_names: ["Gaza", "Gaza City", "Ghazza"],
+                coordinates: [34.4668, 31.5017]
+            },
+            {
+                name_pal: "Yafa",
+                name_common: "Tel Aviv-Yafo",
+                name_ar: "يافا",
+                suppress_names: ["Jaffa", "Yafo", "Tel Aviv", "Tel Aviv-Yafo", "Tel Aviv-Jaffa"],
+                coordinates: [34.7522, 32.0504]
+            },
+            {
+                name_pal: "Hayfa",
+                name_common: "Haifa",
+                name_ar: "حيفا",
+                suppress_names: ["Haifa", "Hefa", "Hayfa"],
+                coordinates: [34.9896, 32.7940]
+            },
+            {
+                name_pal: "Akka",
+                name_common: "Acre",
+                name_ar: "عكا",
+                suppress_names: ["Acre", "Akko", "Akka"],
+                coordinates: [35.0818, 32.9281]
+            },
+            {
+                name_pal: "al-Khalil",
+                name_common: "Hebron",
+                name_ar: "الخليل",
+                suppress_names: ["Hebron", "Al-Khalil", "Al Khalil"],
+                coordinates: [35.0950, 31.5326]
+            },
+            {
+                name_pal: "Nablus",
+                name_common: "Nablus",
+                name_ar: "نابلس",
+                suppress_names: ["Nablus"],
+                coordinates: [35.2621, 32.2211]
+            },
+            {
+                name_pal: "al-Nasira",
+                name_common: "Nazareth",
+                name_ar: "الناصرة",
+                suppress_names: ["Nazareth", "Nazerat", "Al-Nasira", "Al Nasira"],
+                coordinates: [35.3035, 32.6996]
+            },
+            {
+                name_pal: "Bir al-Saba",
+                name_common: "Beersheba",
+                name_ar: "بئر السبع",
+                suppress_names: ["Beersheba", "Beer Sheva", "Be'er Sheva", "Bir al-Saba"],
+                coordinates: [34.7915, 31.2518]
+            },
+            {
+                name_pal: "al-Lydd",
+                name_common: "Lydda",
+                name_ar: "اللد",
+                suppress_names: ["Lod", "Lydda", "Al-Lydd", "Al Lydd"],
+                coordinates: [34.8953, 31.9510]
+            },
+            {
+                name_pal: "al-Ramla",
+                name_common: "Ramla",
+                name_ar: "الرملة",
+                suppress_names: ["Ramla", "Ramle", "Al-Ramla", "Al Ramla"],
+                coordinates: [34.8663, 31.9292]
+            },
+            {
+                name_pal: "al-Majdal Asqalan",
+                name_common: "Ashkelon",
+                name_ar: "المجدل عسقلان",
+                suppress_names: ["Ashkelon", "Ashqelon", "Al-Majdal", "Majdal", "Asqalan"],
+                coordinates: [34.5715, 31.6688]
+            },
+            {
+                name_pal: "Isdud",
+                name_common: "Ashdod",
+                name_ar: "إسدود",
+                suppress_names: ["Ashdod", "Isdud"],
+                coordinates: [34.6500, 31.8044]
+            },
+            {
+                name_pal: "Safad",
+                name_common: "Safed",
+                name_ar: "صفد",
+                suppress_names: ["Safed", "Safad", "Tsfat", "Zefat"],
+                coordinates: [35.4950, 32.9656]
+            },
+            {
+                name_pal: "Tabariya",
+                name_common: "Tiberias",
+                name_ar: "طبريا",
+                suppress_names: ["Tiberias", "Tverya", "Tabariya"],
+                coordinates: [35.5312, 32.7959]
+            },
+            {
+                name_pal: "Jenin",
+                name_common: "Jenin",
+                name_ar: "جنين",
+                suppress_names: ["Jenin"],
+                coordinates: [35.2992, 32.4594]
+            },
+            {
+                name_pal: "Tulkarm",
+                name_common: "Tulkarm",
+                name_ar: "طولكرم",
+                suppress_names: ["Tulkarm", "Tulkarem"],
+                coordinates: [35.0286, 32.3104]
+            },
+            {
+                name_pal: "Bayt Lahm",
+                name_common: "Bethlehem",
+                name_ar: "بيت لحم",
+                suppress_names: ["Bethlehem", "Bayt Lahm", "Beit Lahm"],
+                coordinates: [35.2024, 31.7054]
+            },
+            {
+                name_pal: "Ramallah",
+                name_common: "Ramallah",
+                name_ar: "رام الله",
+                suppress_names: ["Ramallah", "Ram Allah"],
+                coordinates: [35.2044, 31.9038]
+            },
+            {
+                name_pal: "Ariha",
+                name_common: "Jericho",
+                name_ar: "أريحا",
+                suppress_names: ["Jericho", "Ariha"],
+                coordinates: [35.4444, 31.8560]
+            }
+        ];
+
+        function makePalestinianDisplayLabel(namePal, nameCommon) {
+            var pal = String(namePal || "").trim();
+            var common = String(nameCommon || "").trim();
+
+            if (!common || pal.toLowerCase() === common.toLowerCase()) {
+                return pal;
+            }
+
+            return pal + " (" + common + ")";
+        }
+
+        const palestinianPlaceLabels = {
+            type: "FeatureCollection",
+            features: rawPalestinianPlaceLabels.map(function(place) {
+                return {
+                    type: "Feature",
+                    properties: {
+                        display_label: makePalestinianDisplayLabel(place.name_pal, place.name_common),
+                        name_pal: place.name_pal,
+                        name_common: place.name_common,
+                        name_ar: place.name_ar,
+                        suppress_names: place.suppress_names
+                    },
+                    geometry: {
+                        type: "Point",
+                        coordinates: place.coordinates
+                    }
+                };
+            })
+        };
+
+        var palestinianSuppressNames = [];
+        for (var pi = 0; pi < palestinianPlaceLabels.features.length; pi++) {
+            var sn = palestinianPlaceLabels.features[pi]?.properties?.suppress_names || [];
+            for (var si = 0; si < sn.length; si++) palestinianSuppressNames.push(sn[si]);
+        }
+        // de-dupe
+        palestinianSuppressNames = Array.from(new Set(palestinianSuppressNames));
+
+        function findCartoPlaceLabelLayerIds() {
+            var layers = map.getStyle()?.layers || [];
+            var ids = [];
+            for (var i = 0; i < layers.length; i++) {
+                var lyr = layers[i];
+                if (!lyr || lyr.type !== "symbol") continue;
+                var id = String(lyr.id || "").toLowerCase();
+                var sourceLayer = String(lyr["source-layer"] || "").toLowerCase();
+                var tf = lyr.layout?.["text-field"];
+                if (!tf) continue;
+
+                // CARTO Positron place/city layers commonly include these terms.
+                if (
+                    id.includes("place") ||
+                    id.includes("settlement") ||
+                    id.includes("locality") ||
+                    id.includes("city") ||
+                    id.includes("town") ||
+                    id.includes("village") ||
+                    sourceLayer.includes("place") ||
+                    sourceLayer.includes("settlement")
+                ) {
+                    ids.push(lyr.id);
+                }
+            }
+            return ids;
+        }
+
+        function makePlaceSuppressionFilter(names) {
+            // Legacy filter syntax; suppress if *any* of the name-like properties match.
+            return [
+                "all",
+                ["!in", "name", ...names],
+                ["!in", "name_en", ...names],
+                ["!in", "name:en", ...names],
+                ["!in", "name_int", ...names],
+                ["!in", "name:latin", ...names],
+                ["!in", "short_name", ...names]
+            ];
+        }
+
+        function applyPlaceSuppressionToLayer(layerId, suppressionFilter) {
+            var existing = map.getFilter(layerId);
+            var combined = combineWithExistingFilter(existing, suppressionFilter);
+            map.setFilter(layerId, combined);
+            {% if jekyll.environment != "production" %}
+            var lyr = map.getLayer(layerId);
+            console.debug("[archive map] Suppressed CARTO place labels for Palestinian cities on layer:", {
+                layerId: layerId,
+                source: lyr?.source,
+                sourceLayer: lyr?.["source-layer"],
+                suppressedCount: palestinianSuppressNames.length
+            });
+            {% endif %}
+        }
+
+        var cartoPlaceLabelLayerIds = findCartoPlaceLabelLayerIds();
+        var placeSuppression = makePlaceSuppressionFilter(palestinianSuppressNames);
+        for (var li = 0; li < cartoPlaceLabelLayerIds.length; li++) {
+            applyPlaceSuppressionToLayer(cartoPlaceLabelLayerIds[li], placeSuppression);
+        }
+
+        map.addSource("palestinian-place-labels", {
+            type: "geojson",
+            data: palestinianPlaceLabels
+        });
+
         var editorialLayerId = 'editorial-occupied-palestine-label';
         map.addLayer({
             id: editorialLayerId,
@@ -472,6 +721,40 @@
                 'text-halo-color': 'rgba(255, 255, 255, 0.88)',
                 'text-halo-width': 1.25,
                 'text-halo-blur': 0.25
+            }
+        });
+
+        map.addLayer({
+            id: "palestinian-place-labels-layer",
+            type: "symbol",
+            source: "palestinian-place-labels",
+            minzoom: 6,
+            layout: {
+                "text-field": ["get", "display_label"],
+                "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+                "text-size": [
+                    "interpolate",
+                    ["linear"],
+                    ["zoom"],
+                    6, 11,
+                    8, 13,
+                    10, 13,
+                    11, 13,
+                    14, 13
+                ],
+                "text-letter-spacing": 0.01,
+                "text-max-width": 9,
+                "text-anchor": "center",
+                "text-allow-overlap": false,
+                "text-ignore-placement": false,
+                "text-optional": true
+            },
+            paint: {
+                // Slightly darker than the base CARTO place labels, but still quiet.
+                "text-color": "rgba(21, 21, 21, 0.88)",
+                "text-halo-color": "rgba(250, 250, 248, 0.92)",
+                "text-halo-width": 1.15,
+                "text-halo-blur": 0.2
             }
         });
 
