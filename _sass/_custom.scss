@@ -3,6 +3,14 @@
     Overrides CollectionBuilder defaults with a calmer, research-oriented visual system.
 */
 
+@font-face {
+    font-family: "Palestine Typeface";
+    src: url("../fonts/alfont_com_Palestine-Regular.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
 :root {
     --site-bg: #f6f3ed;
     --site-surface: #fffdf8;
@@ -296,6 +304,86 @@ main#maincontent {
     pointer-events: none;
     opacity: 0.03;
     background-image: repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.75) 0 1px, transparent 1px 18px);
+}
+
+#home-title-box .editorial-banner-panel--light {
+    background: #fff;
+    border: 1px solid rgba(34, 36, 33, 0.12);
+    box-shadow: 0 16px 40px rgba(12, 18, 14, 0.14);
+    backdrop-filter: none;
+}
+
+#home-title-box .editorial-banner-panel--light::after {
+    display: none;
+}
+
+#home-title-box .editorial-banner-panel--light .editorial-banner-kicker {
+    color: var(--site-accent-strong);
+}
+
+#home-title-box .editorial-banner-panel--light .editorial-banner-subtitle {
+    color: var(--site-ink-soft);
+}
+
+#home-title-box .editorial-banner-panel--light .btn-hero-secondary {
+    border-color: rgba(47, 65, 44, 0.42);
+    color: var(--site-accent-strong);
+    background: rgba(67, 89, 63, 0.07);
+}
+
+#home-title-box .editorial-banner-panel--light .btn-hero-secondary:hover,
+#home-title-box .editorial-banner-panel--light .btn-hero-secondary:focus {
+    border-color: var(--site-accent);
+    color: var(--site-accent-strong);
+    background: rgba(67, 89, 63, 0.14);
+}
+
+.hero-bilingual-heading {
+    font-weight: 400;
+    line-height: 1.12;
+    color: inherit;
+    margin-bottom: 0.62rem;
+}
+
+/* English + Arabic printed in the same cell, offset, transparent inks (see home hero reference) */
+.hero-bilingual-stack {
+    --hero-duo-size: clamp(2.35rem, 1.9rem + 2.45vw, 4.25rem);
+    /* Arabic vs English baseline: ×1.404 (was ×1.56, −10%) */
+    --hero-ar-size: calc(var(--hero-duo-size) * 1.404);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
+    align-items: start;
+    max-width: 100%;
+}
+
+.hero-layer {
+    grid-area: 1 / 1;
+    position: relative;
+    margin: 0;
+    max-width: 100%;
+    line-height: 1.08;
+    text-align: start;
+}
+
+/* Arabic underneath: ~20% larger; vivid seafoam teal (sample poster) */
+.hero-layer--ar {
+    z-index: 1;
+    font-size: var(--hero-ar-size);
+    font-family: "Palestine Typeface", "Noto Naskh Arabic", "Amiri", serif;
+    font-weight: 400;
+    color: rgba(0, 212, 186, 0.82);
+    transform: translate(0.12em, -0.42em);
+}
+
+/* English on top: warm coral-red, title stack — Palestine is Arabic-only */
+.hero-layer--en {
+    z-index: 2;
+    font-size: var(--hero-duo-size);
+    font-family: var(--title-font-family);
+    font-weight: 700;
+    color: rgba(255, 48, 72, 0.82);
+    transform: translate(-0.08em, -0.06em);
 }
 
 #home-title-box .editorial-banner-kicker {

@@ -60,9 +60,18 @@
 <div id="home-banner" class="mb-0 position-relative archive-hero">
     <div class="home-banner-inner container">
         <div id="home-title-box">
-            <div class="editorial-banner-panel text-start text-white">
-                <p class="editorial-banner-kicker mb-2">Digital Archive</p>
+            <div class="editorial-banner-panel text-start{% if page.layout == 'home-infographic' %} editorial-banner-panel--light{% else %} text-white{% endif %}">
+                {% if page.layout == 'home-infographic' %}
+                <h1 class="hero-bilingual-heading mb-0">
+                    <span class="visually-hidden">{{ page.banner-heading | default: site.title }}, التضامن مع فلسطين في جامعة بازل</span>
+                    <span class="hero-bilingual-stack" aria-hidden="true">
+                        <span class="hero-layer hero-layer--ar" dir="rtl" lang="ar">التضامن مع فلسطين في جامعة بازل</span>
+                        <span class="hero-layer hero-layer--en" lang="en">{{ page.banner-heading | default: site.title }}</span>
+                    </span>
+                </h1>
+                {% else %}
                 <h1 class="display-2 editorial-banner-title">{{ page.banner-heading | default: site.title }}</h1>
+                {% endif %}
                 {% if page.banner-sub-heading != false and page.banner-sub-heading or site.tagline %}<p class="editorial-banner-subtitle">{{ page.banner-sub-heading | default: site.tagline }}</p>{% endif %}
                 <div class="hero-cta-row">
                     <a class="btn btn-primary" href="{{ '/browse.html' | relative_url }}">Start Exploring</a>
