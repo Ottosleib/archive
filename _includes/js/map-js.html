@@ -5,14 +5,6 @@
 {% endif %}
 {%- assign items = items | where_exp: 'item','item.latitude != nil and item.longitude != nil' -%}
 {%- assign fields = site.data.config-map -%}
-<!-- load leaflet dependencies -->
-<script src="{{ site.lib-assets | default: '/assets/lib' | relative_url }}/leaflet/leaflet.js"></script>
-<script src="{{ site.lib-assets | default: '/assets/lib' | relative_url }}/leaflet/Leaflet.fullscreen.min.js"></script>
-{% if site.data.theme.map-search == true %}<script src="{{ site.lib-assets | default: '/assets/lib' | relative_url }}/leaflet/fuse.min.js"></script>
-<script src="{{ site.lib-assets | default: '/assets/lib' | relative_url }}/leaflet/leaflet.fusesearch.js"></script>{% endif %}
-{% if site.data.theme.map-cluster == true %}<script src="{{ site.lib-assets | default: '/assets/lib' | relative_url }}/leaflet/leaflet.markercluster.js"></script>{% endif %}
-{% if site.data.theme.map-search == true and site.data.theme.map-cluster == true %}<script src="{{ site.lib-assets | default: '/assets/lib' | relative_url }}/leaflet/leaflet.markercluster.freezable.js"></script>{% endif %}
-
 <script>
 (function(){
     /* add collection map data */
@@ -38,167 +30,560 @@
     var mapZoom = locationSearchParams ? 16 : {{ site.data.theme.zoom-level | default: 5 }};
     var markerFilter = url.searchParams.get('marker') ? url.searchParams.get('marker') : "";
 
-    /* init map */
-    var map = L.map('mapContainer');
-
-    /* add map layer options */
-    var Esri_WorldStreetMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012'
-    });
-    var Esri_NatGeoWorldMap = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; National Geographic, Esri, DeLorme, NAVTEQ, UNEP-WCMC, USGS, NASA, ESA, METI, NRCAN, GEBCO, NOAA, iPC',
-        maxZoom: 16
-    });
-    var Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-    });
-    var OpenStreetMap_Mapnik = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-    });
-    /* add base map switcher */
-    var baseMaps = {
-        "Esri World StreetMap": Esri_WorldStreetMap,
-        "Esri National Geo": Esri_NatGeoWorldMap,
-        "Esri Imagery": Esri_WorldImagery,
-        "Open Street Map": OpenStreetMap_Mapnik
-    };
-    L.control.layers(baseMaps).addTo(map);
-    /* load base map */
-    {{ site.data.theme.map-base | default: 'Esri_WorldStreetMap' }}.addTo(map);
-
-    {% if site.data.theme.map-search == true %}
-    /* add search, https://github.com/naomap/leaflet-fusesearch */
-    var options = {
-        title: 'Search Map Items',
-        placeholder: 'Search map items...',
-        threshold: {{ site.data.theme.map-search-fuzziness | default: 0.35 }},
-        showResultFct: function(feature, container) {
-            var result = `<strong>${feature.properties.title}</strong><br>`;
-            {% for f in fields %}
-            if(feature.properties[{{ f.field | jsonify }}]) { result += feature.properties[{{ f.field | jsonify }}] + `<br>`; }
-            {% endfor %}
-            container.innerHTML = result;
-        }
-    };
-    var searchCtrl = L.control.fuseSearch(options);
-    searchCtrl.addTo(map);
-    searchCtrl.indexFeatures(geodata.features, {{ fields | where: 'search','true' | map: 'field' | unshift: 'title' | jsonify }});{% endif %}
-
-    /* add fullscreen control */ 
-    map.addControl(new L.Control.Fullscreen());
-
-    {% if site.data.theme.map-cluster == true %}
-    /* create cluster group */
-    var markers = L.markerClusterGroup({ 
-        maxClusterRadius: {{ site.data.theme.map-cluster-radius | default: 15 }}, 
-        singleMarkerMode: true,
-        iconCreateFunction: function(cluster) {
-            /* custom icon function, tweak default to add more alt text */
-            var childCount = cluster.getChildCount();
-            var csize;
-            if (childCount < 10) {
-                csize = 'small';
-            } else if (childCount < 100) {
-                csize = 'medium';
-            } else {
-                csize = 'large';
-            }
-            var c = ' marker-cluster-' + csize;
-            return new L.DivIcon({ html: '<div><span class="visually-hidden">' + csize +' cluster of </span><span>' + childCount + '</span><span class="visually-hidden"> items</span></div>', className: 'marker-cluster' + c, iconSize: new L.Point(40, 40) });
-        }
-        {% if site.data.theme.map-search == true %}, removeOutsideVisibleBounds: false{% endif %} 
-    });{% endif %}
-
-    /* get icons function */ 
-    {% include helpers/get-icon.js %}
-
-    /* object popup function */
-    function objectPopups(feature, layer) {
-        {% if site.data.theme.map-search == true %}/* bind feature for search */
-        feature.layer = layer;{% endif %}
-        // find item link
-        var itemHref = `{{ '/items/' | relative_url }}${ feature.properties.parent ? feature.properties.parent + ".html#" + feature.properties.id : feature.properties.id + ".html"}`;
-        // find image
-        var imgAlt = feature.properties.alt ? feature.properties.alt : feature.properties.title;
-        var thumbImg;
-        if (feature.properties.img) {
-            thumbImg = '<img class="map-thumb" src="' + feature.properties.img + '" alt="' + imgAlt + '">';
-        } else {
-            thumbImg = getIcon(feature.properties.template,feature.properties.format,"thumb")
-        }
-        // set up popup content
-        var popupTemplate = '<h2 class="h4"><a class="text-dark" href="' + itemHref + '">' +
-            feature.properties.title + '</a></h2><div class="text-center"><a href="' + itemHref + 
-            '" >' + thumbImg + '</a></div><p>';
-        {% for f in fields %}{% if f.display_name %}
-        if (feature.properties[{{ f.field | escape | jsonify }}]) {
-            popupTemplate += '<strong>{{ f.display_name }}:</strong> ' + feature.properties[{{ f.field | escape | jsonify }}] + '<br>'; 
-        }
-        {% endif %}{% endfor %}
-        popupTemplate += '</p><div class="text-center"><a class="btn btn-light" href="' + itemHref + '" >View Item</a></div>';
-        layer.bindPopup(popupTemplate);
-    }
-    function objectMarkers(feature,latlng) {
-        var marker = L.marker(latlng, {alt: feature.properties.title});
-        {% if site.data.theme.map-cluster == true %}markers.addLayer(marker);{% endif %}
-        return marker;
-    }
-
-    /* add objects from geoJson features */
-    var mapFeatures = L.geoJson(geodata, {
-        onEachFeature: objectPopups,
-        pointToLayer: objectMarkers
-    }){% if site.data.theme.map-cluster != true %}.addTo(map);{% else %};
-    map.addLayer(markers);{% endif %}
-
-    {% if site.data.theme.auto-center-map == true %}
-    /* if no location was specified in the URL query parameters, auto center the map */
-    if (locationSearchParams === null) {
-        const featureBounds = mapFeatures.getBounds()
-        if (featureBounds?.isValid()) {
-            map.fitBounds(featureBounds);
-        }
-    } else {
-        /* set map view based on URL parameters */
-        map.setView(mapCenter, mapZoom);
-    }
-    {% else %}
-    /* set map view based on configuration or URL parameters */
-    map.setView(mapCenter, mapZoom);
-    {% endif %}
-    
-    {% if site.data.theme.map-cluster == true and site.data.theme.map-search == true %}
-    /* uncluster when search is clicked */
-    document.querySelector('a.button').addEventListener("click", function() {
-        markers.disableClustering();
-    });
-    /* recluster when search is closed */
-    document.querySelector('a.close').addEventListener("click", function() {
-        markers.enableClustering();
-        document.querySelector('input.search-input').value = "";
-    });{% endif %}
-    
-    /* show popup if id in URL query */ 
-    if (markerFilter != "") {
-        {% if site.data.theme.map-cluster == true %}
-        markers.eachLayer(layer => {
-            if (layer.feature.properties.id === markerFilter) {
-                /* uncluster clusters, then show */ 
-                if (markers.getVisibleParent(layer)["_childCount"]) {
-                    markers.getVisibleParent(layer).spiderfy();
-                } 
-                layer.openPopup();
-            }
-        });
+    // Prefer a configured production basemap style via theme.yml.
+    // Dev-only fallback: MapLibre demo style (NOT suitable for production use).
+    var mapStyleUrl = {{ site.data.theme.maplibre-style-url | default: "" | jsonify }};
+    if (!mapStyleUrl) {
+        {% if jekyll.environment == "production" %}
+        mapStyleUrl = "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json";
+        console.warn("[archive map] theme.yml is missing `maplibre-style-url`; falling back to CARTO Positron GL.");
         {% else %}
-        mapFeatures.eachLayer(layer => {
-            if (layer.feature.properties.id === markerFilter) {
-                layer.openPopup();
-            }
-        });
+        mapStyleUrl = "https://demotiles.maplibre.org/style.json";
+        console.warn("[archive map] theme.yml is missing `maplibre-style-url`; using MapLibre demo style for development only.");
         {% endif %}
     }
+
+    function asNumber(v) {
+        var n = Number(v);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function parseCenter(center) {
+        if (!Array.isArray(center) || center.length < 2) return null;
+        var lat = asNumber(center[0]);
+        var lng = asNumber(center[1]);
+        if (lat === null || lng === null) return null;
+        return [lng, lat];
+    }
+
+    var initialCenter = parseCenter(mapCenter);
+    var initialZoom = asNumber(mapZoom) ?? 5;
+
+    /* init MapLibre map */
+    var map = new maplibregl.Map({
+        container: 'mapContainer',
+        style: mapStyleUrl,
+        center: initialCenter || [{{ site.data.theme.longitude | default: -117.014185 }}, {{ site.data.theme.latitude | default: 46.727485 }}],
+        zoom: initialZoom,
+        attributionControl: false
+    });
+    map.addControl(new maplibregl.NavigationControl(), 'top-right');
+    map.addControl(new maplibregl.FullscreenControl(), 'top-right');
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+
+    /* get icons function */
+    {% include helpers/get-icon.js %}
+
+    function buildPopupHtml(properties) {
+        // find item link
+        var itemHref = `{{ '/items/' | relative_url }}${ properties.parent ? properties.parent + ".html#" + properties.id : properties.id + ".html"}`;
+        // find image
+        var imgAlt = properties.alt ? properties.alt : properties.title;
+        var thumbImg;
+        if (properties.img) {
+            thumbImg = '<img class="map-thumb" src="' + properties.img + '" alt="' + imgAlt + '">';
+        } else {
+            thumbImg = getIcon(properties.template, properties.format, "thumb");
+        }
+        // set up popup content
+        var popupTemplate = '<div class="archive-map-popup">' +
+            '<h2 class="h4"><a class="text-dark" href="' + itemHref + '">' + properties.title + '</a></h2>' +
+            '<div class="text-center"><a href="' + itemHref + '" >' + thumbImg + '</a></div><p>';
+        {% for f in fields %}{% if f.display_name %}
+        if (properties[{{ f.field | escape | jsonify }}]) {
+            popupTemplate += '<strong>{{ f.display_name }}:</strong> ' + properties[{{ f.field | escape | jsonify }}] + '<br>';
+        }
+        {% endif %}{% endfor %}
+        popupTemplate += '</p><div class="text-center"><a class="btn btn-light" href="' + itemHref + '" >View Item</a></div></div>';
+        return popupTemplate;
+    }
+
+    function getFeatureBounds(featureCollection) {
+        if (!featureCollection?.features?.length) return null;
+        var minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+        for (var i = 0; i < featureCollection.features.length; i++) {
+            var f = featureCollection.features[i];
+            if (!f?.geometry?.coordinates || f.geometry.coordinates.length < 2) continue;
+            var lng = asNumber(f.geometry.coordinates[0]);
+            var lat = asNumber(f.geometry.coordinates[1]);
+            if (lng === null || lat === null) continue;
+            minLng = Math.min(minLng, lng);
+            minLat = Math.min(minLat, lat);
+            maxLng = Math.max(maxLng, lng);
+            maxLat = Math.max(maxLat, lat);
+        }
+        if (!Number.isFinite(minLng) || !Number.isFinite(minLat) || !Number.isFinite(maxLng) || !Number.isFinite(maxLat)) return null;
+        return [[minLng, minLat], [maxLng, maxLat]];
+    }
+
+    map.on('load', function() {
+        const israelNames = [
+            "Israel",
+            "ISRAEL",
+            "State of Israel",
+            "IL",
+            "ISR",
+            "ישראל",
+            "اسرائيل",
+            "إسرائيل"
+        ];
+
+        function summarizeTextField(tf) {
+            if (tf === undefined || tf === null) return null;
+            if (typeof tf === 'string') return tf;
+            try { return JSON.stringify(tf).slice(0, 220); } catch (e) { return '[unserializable text-field]'; }
+        }
+
+        function makeIsraelExclusionFilter() {
+            // Legacy filter syntax (Mapbox v8 style filters), as requested.
+            // Note: "!in" is true if the feature property is not any of the listed values.
+            return [
+                "all",
+                ["!in", "name", ...israelNames],
+                ["!in", "name_en", ...israelNames],
+                ["!in", "name:en", ...israelNames],
+                ["!in", "name_de", ...israelNames],
+                ["!in", "name_fr", ...israelNames],
+                ["!in", "name_int", ...israelNames],
+                ["!in", "short_name", ...israelNames],
+                ["!in", "name:latin", ...israelNames],
+                ["!in", "abbr", ...israelNames],
+                ["!in", "iso_3166_1", "IL", "ISR"],
+                ["!in", "iso_a2", "IL"],
+                ["!in", "iso_a3", "ISR"]
+            ];
+        }
+
+        function combineWithExistingFilter(existingFilter, israelExclusionFilter) {
+            if (!existingFilter) return israelExclusionFilter;
+            // ["all", existingFilter, ...israelExclusionFilter.slice(1)]
+            var combined = ["all", existingFilter];
+            for (var i = 1; i < israelExclusionFilter.length; i++) combined.push(israelExclusionFilter[i]);
+            return combined;
+        }
+
+        function layerLayoutTextField(layerId) {
+            try {
+                var lyr = map.getStyle()?.layers?.find(function(l) { return l.id === layerId; });
+                return lyr?.layout?.["text-field"];
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function propertiesContainIsraelToken(props) {
+            if (!props) return false;
+            var haystack = "";
+            try {
+                // stringify values only to avoid key noise
+                var vals = [];
+                for (var k in props) {
+                    if (!Object.prototype.hasOwnProperty.call(props, k)) continue;
+                    var v = props[k];
+                    if (v === null || v === undefined) continue;
+                    vals.push(String(v));
+                }
+                haystack = vals.join(" | ");
+            } catch (e) {
+                return false;
+            }
+
+            // Case-insensitive for Latin; direct includes for Hebrew/Arabic.
+            var lower = haystack.toLowerCase();
+            if (lower.includes("israel")) return true;
+            if (lower.includes("state of israel")) return true;
+            if (lower.includes(" il ") || lower === "il" || lower.includes("|il|") || lower.includes("=il")) return true;
+            if (lower.includes(" isr ") || lower === "isr" || lower.includes("|isr|") || lower.includes("=isr")) return true;
+            if (haystack.includes("ישראל")) return true;
+            if (haystack.includes("اسرائيل")) return true;
+            if (haystack.includes("إسرائيل")) return true;
+            return false;
+        }
+
+        function getAllSymbolLayerIds() {
+            var layers = map.getStyle()?.layers || [];
+            var ids = [];
+            for (var i = 0; i < layers.length; i++) {
+                if (layers[i]?.type === "symbol") ids.push(layers[i].id);
+            }
+            return ids;
+        }
+
+        var filteredLayerIds = new Set();
+        var filterAttempts = 0;
+        var editorialFallbackLngLat = [34.95, 31.25]; // [lng, lat] fallback if rendered Israel label coords can't be reused
+        var editorialAnchored = false;
+        var editorialZoomRangeLocked = false;
+
+        function findStyleLayerDefinition(layerId) {
+            try {
+                var layers = map.getStyle()?.layers || [];
+                for (var i = 0; i < layers.length; i++) {
+                    if (layers[i]?.id === layerId) return layers[i];
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function clampZoom(z) {
+            var n = Number(z);
+            return Number.isFinite(n) ? n : null;
+        }
+
+        function mirrorZoomRangeFromBaseLabelLayer(baseLayerId) {
+            if (editorialZoomRangeLocked) return;
+            var def = findStyleLayerDefinition(baseLayerId);
+            var minz = clampZoom(def?.minzoom);
+            var maxz = clampZoom(def?.maxzoom);
+
+            // If the base layer doesn't specify minzoom, enforce a safe rule (hide at world/continent zoom).
+            if (minz === null) minz = 5;
+            if (maxz === null) maxz = 24;
+
+            try {
+                if (typeof map.setLayerZoomRange === "function") {
+                    map.setLayerZoomRange(editorialLayerId, minz, maxz);
+                } else {
+                    // Fallback: set minzoom/maxzoom on layer definition via layout properties isn't supported;
+                    // in that case we rely on the layer's built-in minzoom set at creation time.
+                }
+                editorialZoomRangeLocked = true;
+                {% if jekyll.environment != "production" %}
+                console.debug("[archive map] Editorial label zoom range set to match base layer:", { baseLayerId: baseLayerId, minzoom: minz, maxzoom: maxz });
+                {% endif %}
+            } catch (e) {
+                {% if jekyll.environment != "production" %}
+                console.warn("[archive map] Failed to set editorial label zoom range; using default minzoom.");
+                {% endif %}
+            }
+        }
+
+        function getNameLike(props) {
+            if (!props) return "";
+            return String(
+                props.name_en ||
+                props["name:en"] ||
+                props["name:latin"] ||
+                props.short_name ||
+                props.name ||
+                ""
+            );
+        }
+
+        function isCityToAvoid(props) {
+            var n = getNameLike(props).toLowerCase();
+            return n.includes("jerusalem") || n.includes("tel aviv") || n.includes("gaza");
+        }
+
+        function scoreIsraelLabelCandidate(feature) {
+            var lid = String(feature?.layer?.id || "").toLowerCase();
+            var props = feature?.properties || {};
+            var score = 0;
+
+            // Prefer country-level label layers and features with ISO fields.
+            if (lid.includes("country")) score += 60;
+            if (lid.includes("admin")) score += 15;
+            if (props.iso_a2 || props.iso_3166_1) score += 40;
+            if (props.iso_a3) score += 20;
+
+            // Deprioritize place/city-ish layers.
+            if (lid.includes("place")) score -= 20;
+            if (lid.includes("settlement")) score -= 30;
+            if (lid.includes("locality")) score -= 25;
+            if (lid.includes("poi")) score -= 35;
+
+            // Avoid known city points explicitly.
+            if (isCityToAvoid(props)) score -= 200;
+
+            // Prefer more prominent labels if rank fields exist (lower rank = more prominent).
+            var labelrank = props.labelrank != null ? Number(props.labelrank) : null;
+            if (Number.isFinite(labelrank)) score += Math.max(0, 25 - labelrank);
+            var scalerank = props.scalerank != null ? Number(props.scalerank) : null;
+            if (Number.isFinite(scalerank)) score += Math.max(0, 25 - scalerank);
+
+            return score;
+        }
+
+        function anchorEditorialLabelAtLngLat(lngLat) {
+            var lng = Number(lngLat?.[0]);
+            var lat = Number(lngLat?.[1]);
+            if (!Number.isFinite(lng) || !Number.isFinite(lat)) return false;
+            var src = map.getSource("editorial-labels");
+            if (!src) return false;
+            src.setData({
+                type: "FeatureCollection",
+                features: [
+                    {
+                        type: "Feature",
+                        properties: { label: "Occupied Palestine" },
+                        geometry: { type: "Point", coordinates: [lng, lat] }
+                    }
+                ]
+            });
+            editorialAnchored = true;
+            return true;
+        }
+
+        function anchorEditorialLabelToFeature(feature) {
+            if (!feature?.geometry?.coordinates || feature.geometry.coordinates.length < 2) return false;
+            if (feature.geometry.type !== "Point") return false;
+            return anchorEditorialLabelAtLngLat([feature.geometry.coordinates[0], feature.geometry.coordinates[1]]);
+        }
+
+        function scanAndFilterIsraelLabels() {
+            var symbolLayerIds = getAllSymbolLayerIds();
+            if (symbolLayerIds.length === 0) return;
+
+            var features = map.queryRenderedFeatures(undefined, { layers: symbolLayerIds }) || [];
+            var offending = [];
+            var offendingLayerIds = new Set();
+
+            for (var i = 0; i < features.length; i++) {
+                var f = features[i];
+                if (!f?.layer?.id) continue;
+                if (!propertiesContainIsraelToken(f.properties)) continue;
+                offending.push(f);
+                offendingLayerIds.add(f.layer.id);
+            }
+
+            // Before suppressing Israel, anchor the editorial label to the *actual rendered* Israel label point.
+            if (!editorialAnchored && offending.length > 0) {
+                var best = null;
+                var bestScore = -Infinity;
+                for (var bi = 0; bi < offending.length; bi++) {
+                    var cand = offending[bi];
+                    var s = scoreIsraelLabelCandidate(cand);
+                    if (s > bestScore) {
+                        best = cand;
+                        bestScore = s;
+                    }
+                }
+
+                var anchored = false;
+                if (best && bestScore > -50 && !isCityToAvoid(best.properties)) {
+                    anchored = anchorEditorialLabelToFeature(best);
+                    if (anchored) {
+                        mirrorZoomRangeFromBaseLabelLayer(best.layer?.id);
+                    }
+                }
+                if (!anchored) {
+                    anchorEditorialLabelAtLngLat(editorialFallbackLngLat);
+                    // Safe manual rule if we couldn't mirror the base layer
+                    mirrorZoomRangeFromBaseLabelLayer(null);
+                }
+            }
+
+            {% if jekyll.environment != "production" %}
+            if (offending.length > 0) {
+                console.groupCollapsed("[archive map] Israel labels detected (rendered): " + offending.length);
+                for (var j = 0; j < offending.length; j++) {
+                    var of = offending[j];
+                    var lid = of.layer.id;
+                    var lyr = map.getLayer(lid);
+                    console.log({
+                        layerId: lid,
+                        source: lyr?.source,
+                        sourceLayer: lyr?.["source-layer"],
+                        layoutTextField: summarizeTextField(layerLayoutTextField(lid)),
+                        properties: of.properties
+                    });
+                }
+                console.groupEnd();
+            }
+            {% endif %}
+
+            if (offendingLayerIds.size === 0) return;
+
+            filterAttempts += 1;
+
+            // Apply the exact legacy filter to the *actual* offending layers.
+            var exclusion = makeIsraelExclusionFilter();
+            offendingLayerIds.forEach(function(layerId) {
+                var existing = map.getFilter(layerId);
+                var combined = combineWithExistingFilter(existing, exclusion);
+                map.setFilter(layerId, combined);
+                filteredLayerIds.add(layerId);
+                {% if jekyll.environment != "production" %}
+                console.debug("[archive map] Applied Israel exclusion filter to layer:", layerId);
+                {% endif %}
+            });
+
+            // If we still see Israel after at least 2 filter passes, warn.
+            if (filterAttempts >= 2) {
+                map.once("idle", function() {
+                    var post = map.queryRenderedFeatures(undefined, { layers: Array.from(offendingLayerIds) }) || [];
+                    var still = post.some(function(f) { return propertiesContainIsraelToken(f.properties); });
+                    if (still) {
+                        {% if jekyll.environment != "production" %}
+                        console.warn("[archive map] Israel label still visible after filtering for layer(s):", Array.from(offendingLayerIds));
+                        {% endif %}
+                    }
+                });
+            }
+        }
+
+        /* editorial labels source + layer (above normal country labels) */
+        map.addSource('editorial-labels', {
+            type: 'geojson',
+            data: {
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                        properties: { label: 'Occupied Palestine' },
+                        geometry: {
+                            type: 'Point',
+                            // Initialized to a fallback; will be replaced at runtime by the removed rendered "ISRAEL" label coordinates when available.
+                            coordinates: editorialFallbackLngLat
+                        }
+                    }
+                ]
+            }
+        });
+
+        var editorialLayerId = 'editorial-occupied-palestine-label';
+        map.addLayer({
+            id: editorialLayerId,
+            type: 'symbol',
+            source: 'editorial-labels',
+            minzoom: 5,
+            layout: {
+                'text-field': ['get', 'label'],
+                'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                'text-size': [
+                    'interpolate',
+                    ['linear'],
+                    ['zoom'],
+                    5, 13,
+                    6, 14,
+                    7, 15,
+                    8, 15,
+                    10, 15
+                ],
+                'text-letter-spacing': 0.02,
+                'text-max-width': 8,
+                'text-anchor': 'center',
+                'text-offset': [0, 0],
+                'text-allow-overlap': false,
+                'text-ignore-placement': false
+            },
+            paint: {
+                'text-color': 'rgba(21, 21, 21, 0.78)',
+                'text-halo-color': 'rgba(255, 255, 255, 0.88)',
+                'text-halo-width': 1.25,
+                'text-halo-blur': 0.25
+            }
+        });
+
+        // Scan the *rendered* symbol features to find the real layer(s) producing "ISRAEL",
+        // then filter exactly those layers. Run once after initial idle, and again after moves.
+        map.once("idle", scanAndFilterIsraelLabels);
+        map.on("idle", function() {
+            if (scanAndFilterIsraelLabels._t && Date.now() - scanAndFilterIsraelLabels._t < 1500) return;
+            scanAndFilterIsraelLabels._t = Date.now();
+            scanAndFilterIsraelLabels();
+        });
+
+        map.addSource('archive-items', {
+            type: 'geojson',
+            data: geodata,
+            cluster: {{ site.data.theme.map-cluster | default: true | jsonify }},
+            clusterRadius: {{ site.data.theme.map-cluster-radius | default: 25 }},
+            clusterMaxZoom: 14
+        });
+
+        /* clustered circles */
+        map.addLayer({
+            id: 'archive-clusters',
+            type: 'circle',
+            source: 'archive-items',
+            filter: ['has', 'point_count'],
+            paint: {
+                'circle-color': 'rgba(21, 21, 21, 0.78)',
+                'circle-stroke-color': 'rgba(255, 255, 255, 0.9)',
+                'circle-stroke-width': 1,
+                'circle-radius': [
+                    'step',
+                    ['get', 'point_count'],
+                    16, 10,
+                    20, 50,
+                    26, 100,
+                    32
+                ]
+            }
+        });
+
+        /* cluster count */
+        map.addLayer({
+            id: 'archive-cluster-count',
+            type: 'symbol',
+            source: 'archive-items',
+            filter: ['has', 'point_count'],
+            layout: {
+                'text-field': ['to-string', ['get', 'point_count']],
+                'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+                'text-size': 12
+            },
+            paint: {
+                'text-color': 'rgba(255, 255, 255, 0.95)'
+            }
+        });
+
+        /* individual points */
+        map.addLayer({
+            id: 'archive-unclustered-point',
+            type: 'circle',
+            source: 'archive-items',
+            filter: ['!', ['has', 'point_count']],
+            paint: {
+                'circle-color': 'rgba(21, 21, 21, 0.92)',
+                'circle-stroke-color': 'rgba(255, 255, 255, 0.9)',
+                'circle-stroke-width': 1,
+                'circle-radius': 5
+            }
+        });
+
+        var popup = new maplibregl.Popup({ closeButton: true, closeOnClick: true, maxWidth: '320px' });
+
+        map.on('click', 'archive-clusters', function(e) {
+            var features = map.queryRenderedFeatures(e.point, { layers: ['archive-clusters'] });
+            var clusterId = features?.[0]?.properties?.cluster_id;
+            if (clusterId === undefined || clusterId === null) return;
+            map.getSource('archive-items').getClusterExpansionZoom(clusterId, function(err, zoom) {
+                if (err) return;
+                map.easeTo({ center: features[0].geometry.coordinates, zoom: zoom });
+            });
+        });
+
+        map.on('click', 'archive-unclustered-point', function(e) {
+            var feature = e.features?.[0];
+            if (!feature) return;
+            var coordinates = feature.geometry.coordinates.slice();
+            var html = buildPopupHtml(feature.properties || {});
+            popup.setLngLat(coordinates).setHTML(html).addTo(map);
+        });
+
+        map.on('mouseenter', 'archive-clusters', function() { map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mouseleave', 'archive-clusters', function() { map.getCanvas().style.cursor = ''; });
+        map.on('mouseenter', 'archive-unclustered-point', function() { map.getCanvas().style.cursor = 'pointer'; });
+        map.on('mouseleave', 'archive-unclustered-point', function() { map.getCanvas().style.cursor = ''; });
+
+        {% if site.data.theme.auto-center-map == true %}
+        if (locationSearchParams === null) {
+            var bounds = getFeatureBounds(geodata);
+            if (bounds) map.fitBounds(bounds, { padding: 30, duration: 0 });
+        }
+        {% endif %}
+
+        /* show popup if id in URL query */
+        if (markerFilter !== "") {
+            var match = geodata.features.find(function(f) { return String(f.properties?.id) === String(markerFilter); });
+            if (match) {
+                popup.setLngLat(match.geometry.coordinates).setHTML(buildPopupHtml(match.properties || {})).addTo(map);
+                map.easeTo({ center: match.geometry.coordinates, zoom: Math.max(map.getZoom(), 11) });
+            }
+        }
+    });
 
 })();
 
